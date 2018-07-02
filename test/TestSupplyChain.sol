@@ -6,28 +6,29 @@ import "../contracts/SupplyChain.sol";
 
 
 contract TestSupplyChain {
-    // uint public initialBalance = 100;
-    uint public initialBalance;
-    SupplyChain public chain;
+    // todo fails with 100 ether;
+    uint public initialBalance = 1 ether;
+    // SupplyChain public chain;
 
     string itemName = "Gem";
     uint   itemPrice = 3;
 
-    function beforeEach() public
-    {
-        chain = new SupplyChain();
-        initialBalance = 100;
-    }
+    // function beforeEach() public
+    // {
+        // chain = new SupplyChain();
+    // }
 
-    function putItemForSale() public
-    {
-        chain.addItem(itemName, itemPrice);
-    }
+    // function putItemForSale() public
+    // {
+        // chain.addItem(itemName, itemPrice);
+    // }
 
     // Test for failing conditions in this contracts
     // test that every modifier is working
     function testItemCanBePutOnSale() public {
-        putItemForSale();
+        SupplyChain chain = new SupplyChain();
+        chain.addItem(itemName, itemPrice);
+        // putItemForSale();
 
         uint expectedState = 0; // 0: Sale
         uint expectedSku = 0;
@@ -47,27 +48,24 @@ contract TestSupplyChain {
     }
 
     function testUserDoesNotPaysTheRightPrice() public payable {
-        putItemForSale();
+        SupplyChain chain = new SupplyChain();
+        chain.addItem(itemName, itemPrice);
+        // putItemForSale();
         uint sku = 0;
 
-        // Need to differentiate buyer and seller
-        // this seems like transferring to self
-        // how to do this in solidity?
-
-        bool result = address(chain).call.value(0)(abi.encodeWithSignature("buyItem(uint)", sku));
+        uint offer = itemPrice - 1; // low ball price
+        bool result = address(chain).call.value(offer)(abi.encodeWithSignature("buyItem(uint256)", sku));
         Assert.isFalse(result, "under Paid for item");
     }
 
-
-    function testUserPaysTheRightPrice() public {
-        putItemForSale();
+    function testUserPaysTheRightPrice() public payable {
+        SupplyChain chain = new SupplyChain();
+        chain.addItem(itemName, itemPrice);
+        // putItemForSale();
         uint sku = 0;
 
-        // Need to differentiate buyer and seller
-        // this seems like transferring to self
-        // how to do this in solidity?
-
-        bool result = address(chain).call.value(itemPrice+1)(abi.encodeWithSignature("buyItem(uint)", sku));
+        uint offer = itemPrice + 1; // exceed price
+        bool result = address(chain).call.value(offer)(abi.encodeWithSignature("buyItem(uint256)", sku));
         Assert.isTrue(result, "Paid the correct price...");
     }
 
@@ -86,4 +84,6 @@ contract TestSupplyChain {
 
     // test calling the function from an address that is not the buyer
     // test calling the function on an item not marked Shipped
+
+    function() public payable {}
 }
