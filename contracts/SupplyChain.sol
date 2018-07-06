@@ -1,13 +1,12 @@
 pragma solidity ^0.4.24;
+import "./SupplyChainState.sol";
 
 
-contract SupplyChain {
+contract SupplyChain is SupplyChainState {
 
     address owner;
     uint skuCount;
     mapping (uint => Item) public items;
-
-    enum State { ForSale, Sold, Shipped, Received }
 
     struct Item {
         string name;
@@ -47,7 +46,6 @@ contract SupplyChain {
     }
 
     modifier forSale(uint _sku) {
-        State state = items[_sku].state;
         require(items[_sku].state == State.ForSale);
         _;
     }
@@ -94,7 +92,6 @@ contract SupplyChain {
         items[sku].buyer = msg.sender;
         items[sku].seller.transfer(items[sku].price);
         emit Sold(sku);
-
     }
 
     function shipItem(uint sku)
